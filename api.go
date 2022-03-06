@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,6 +18,31 @@ type Client struct {
 type Page struct {
 	Object string `json:"object"`
 	Id string `json:"id"`
+}
+
+type Item struct {
+	// Parent string
+	Parent struct {
+		Database_id string `json:"database_id"`
+	} `json:"parent"`
+	Properties struct {
+		Name struct {
+			Title struct {
+				Text []struct {
+					Content string `json:"content"`
+				} `json:"text"`
+			} `json:"title"`
+			DoDate struct {
+				Date struct {
+					Start string `json:"start"`
+					End string `json:"end"`
+				} `json:"date"`
+			} `json:"Do date"`
+			Link struct {
+				Url string `json:"url"`
+			} `json:"Link"`
+		} `json:"Name"`
+	} `json:"properties"`
 }
 
 func NewClient(baseURL string) (*Client, error) {
@@ -40,8 +66,38 @@ func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request
 	return req, nil
 }
 
+func (c *Client) PostItem() (error) {
+	var jsonData = []byte(`{
+		"parent": {
+			"database_id": "f50193cd93f2488d8b1dd1c5d3a8cb7d"
+		},
+		"properties": {
+			"Name": {
+				"title": [
+					{	
+						"text": {
+							"content": "Notion API"
+						}
+					}
+				]
+			}
+		}
+	}`)
+	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer(jsonData)) 
+	if err != nil {
+		return err
+	}
+	res, err := c.HTTPClient.Do(req)
+	if (err != nil) {
+		return err
+	}
+	defer res.Body.Close()
+	fmt.Printf("Response: %v", res)
+	return nil
+}
+
 func (c *Client) GetPage(pageId string) (*Page, error) {
-	req, err := c.newRequest(http.MethodGet, "/pages/" + pageId, nil);
+	req, err := c.newRequest(http.MethodGet, "/pages/" + pageId, nil)
 	if err != nil {
 		return nil, err
 	}
