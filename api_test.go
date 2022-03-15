@@ -61,16 +61,25 @@ func TestClient_PostItem(t *testing.T) {
 		BaseURL    string
 		HTTPClient *http.Client
 	}
+	type args struct {
+		item Item
+	}
 	tests := []struct {
 		name    string
 		fields  fields
+		args    args
 		wantErr bool
 	}{
 		{
 			name: "normal",
 			fields: fields{
-				BaseURL:    "https://api.notion.com/v1",
+				BaseURL: "https://api.notion.com/v1", 
 				HTTPClient: new(http.Client),
+			},
+			args: args{
+				item: Item{
+					Title: "NOTION-API",
+				},
 			},
 			wantErr: false,
 		},
@@ -81,7 +90,7 @@ func TestClient_PostItem(t *testing.T) {
 				BaseURL:    tt.fields.BaseURL,
 				HTTPClient: tt.fields.HTTPClient,
 			}
-			if err := c.PostItem(); (err != nil) != tt.wantErr {
+			if err := c.PostItem(tt.args.item); (err != nil) != tt.wantErr {
 				t.Errorf("Client.PostItem() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type Client struct {
@@ -20,29 +21,33 @@ type Page struct {
 	Id string `json:"id"`
 }
 
+// type Item struct {
+// 	Parent struct {
+// 		DatabaseID string `json:"database_id"`
+// 	} `json:"parent"`
+// 	Properties struct {
+// 		Name struct {
+// 			Title []struct {
+// 				Text struct {
+// 					Content string `json:"content"`
+// 				} `json:"text"`
+// 			} `json:"title"`
+// 		} `json:"Name"`
+// 	} `json:"properties"`
+// }
+
 type Item struct {
-	// Parent string
-	Parent struct {
-		Database_id string `json:"database_id"`
-	} `json:"parent"`
-	Properties struct {
-		Name struct {
-			Title struct {
-				Text []struct {
-					Content string `json:"content"`
-				} `json:"text"`
-			} `json:"title"`
-			DoDate struct {
-				Date struct {
-					Start string `json:"start"`
-					End string `json:"end"`
-				} `json:"date"`
-			} `json:"Do date"`
-			Link struct {
-				Url string `json:"url"`
-			} `json:"Link"`
-		} `json:"Name"`
-	} `json:"properties"`
+	Title string
+	DoDate string
+	URL string
+}
+
+type Parent struct {
+	DatabaseID string `json:"database_id"`
+}
+
+type Text struct {
+	Content string `json:"content"`
 }
 
 func NewClient(baseURL string) (*Client, error) {
@@ -66,8 +71,8 @@ func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request
 	return req, nil
 }
 
-func (c *Client) PostItem() (error) {
-	var jsonData = []byte(`{
+func (c *Client) PostItem(item Item) (error) {
+	var jsonStr = `{
 		"parent": {
 			"database_id": "f50193cd93f2488d8b1dd1c5d3a8cb7d"
 		},
@@ -76,14 +81,17 @@ func (c *Client) PostItem() (error) {
 				"title": [
 					{	
 						"text": {
-							"content": "Notion API"
+							"content": "%ITEM_TITLE%"
 						}
 					}
 				]
 			}
 		}
-	}`)
-	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer(jsonData)) 
+	}`
+
+	jsonStr = strings.Replace(string(jsonStr), "%ITEM_TITLE%", item.Title, -1)
+	
+	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer([]byte(jsonStr))) 
 	if err != nil {
 		return err
 	}
