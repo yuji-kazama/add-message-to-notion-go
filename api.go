@@ -21,21 +21,6 @@ type Page struct {
 	Id string `json:"id"`
 }
 
-// type Item struct {
-// 	Parent struct {
-// 		DatabaseID string `json:"database_id"`
-// 	} `json:"parent"`
-// 	Properties struct {
-// 		Name struct {
-// 			Title []struct {
-// 				Text struct {
-// 					Content string `json:"content"`
-// 				} `json:"text"`
-// 			} `json:"title"`
-// 		} `json:"Name"`
-// 	} `json:"properties"`
-// }
-
 type Item struct {
 	Title string
 	DoDate string
@@ -72,7 +57,7 @@ func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request
 }
 
 func (c *Client) PostItem(item Item) (error) {
-	var jsonStr = `{
+	var itemJson = `{
 		"parent": {
 			"database_id": "f50193cd93f2488d8b1dd1c5d3a8cb7d"
 		},
@@ -85,13 +70,24 @@ func (c *Client) PostItem(item Item) (error) {
 						}
 					}
 				]
+			},
+			"Do date": {
+				"date": {
+					"start": "%ITEM_DODATE%",
+					"end": null
+				}
+			},
+			"Link": {
+				"url": "%ITEM_URL%"
 			}
 		}
 	}`
 
-	jsonStr = strings.Replace(string(jsonStr), "%ITEM_TITLE%", item.Title, -1)
+	itemJson = strings.Replace(string(itemJson), "%ITEM_TITLE%", item.Title, -1)
+	itemJson = strings.Replace(string(itemJson), "%ITEM_DODATE%", item.DoDate, -1)
+	itemJson = strings.Replace(string(itemJson), "%ITEM_URL%", item.URL, -1)
 	
-	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer([]byte(jsonStr))) 
+	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer([]byte(itemJson))) 
 	if err != nil {
 		return err
 	}

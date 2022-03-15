@@ -79,6 +79,8 @@ func TestClient_PostItem(t *testing.T) {
 			args: args{
 				item: Item{
 					Title: "NOTION-API",
+					DoDate: "2022-04-09",
+					URL: "http://example.com",
 				},
 			},
 			wantErr: false,
