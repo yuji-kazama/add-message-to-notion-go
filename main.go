@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/slack-go/slack"
 )
@@ -25,7 +26,7 @@ func main() {
 
 		payload, err := url.QueryUnescape(string(body))
 		if err != nil {
-			log.Printf("[ERROR] Failed to unescape: %v", err)
+			log.Printf("[ERROR] Failed to unescape request body: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -45,7 +46,11 @@ func main() {
 
 		switch message.Type {
 		case "message_action":
-			modal, err := createModal()
+			j := getModalJson()
+			j = strings.Replace(j, "%INITIAL_DATE%", getTodayDateString(), 1)
+			j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(message), 1)
+			
+			modal, err := createModal(j)
 			if err != nil {
 				log.Printf("[ERROR] Unable to create modal: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -84,8 +89,24 @@ func verify(r *http.Request) error {
 	return verifier.Ensure()
 }
 
-func createModal() (*slack.ModalViewRequest, error) {
-	j := `
+func createModal(j string) (*slack.ModalViewRequest, error) {
+	var modal slack.ModalViewRequest
+	if err := json.Unmarshal([]byte(j), &modal); err!= nil {
+		return nil, fmt.Errorf("failed to unmarchal json: %w", err)
+	}
+	return &modal, nil
+}
+
+func getTodayDateString() string {
+	return time.Now().String()[0:10]
+}
+
+func getMessageURLString(m slack.InteractionCallback) string {
+	return "https://" + m.Team.Domain + ".slack.com/archives/" + m.Channel.ID + "/p" + m.MessageTs
+}
+
+func getModalJson() string {
+	return `
 	{
 			"type": "modal",
 			"title": {
@@ -103,20 +124,47 @@ func createModal() (*slack.ModalViewRequest, error) {
 					"element": {
 						"action_id": "message_id",
 						"type": "plain_text_input",
-						"initial_value": "hoge"
+						"initial_value": ""
 					},
 					"label": {
 						"type": "plain_text",
 						"text": "Title"
 					}
+				},
+				{
+					"block_id": "date",
+					"type": "input",
+					"element": {
+					  "action_id": "date_id",
+					  "type": "datepicker",
+					  "initial_date": "%INITIAL_DATE%",
+					  "placeholder": {
+						"type": "plain_text",
+						"text": "Select a date"
+					  }
+					},
+					"label": {
+					  "type": "plain_text",
+					  "text": "Do Date"
+					}
+				},
+				{
+					"block_id": "link",
+					"type": "input",
+					"element": {
+					  "action_id": "link_id",
+					  "type": "plain_text_input",
+					  "initial_value": "%INITIAL_URL%"
+					},
+					"label": {
+					  "type": "plain_text",
+					  "text": "Link"
+					}
 				}
 			]
 	}`
-	var modal slack.ModalViewRequest
-	if err := json.Unmarshal([]byte(j), &modal); err!= nil {
-		return nil, fmt.Errorf("failed to unmarchal json: %w", err)
-	}
-	return &modal, nil
 }
+
+
 
 
