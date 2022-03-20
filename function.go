@@ -1,4 +1,4 @@
-package main
+package function
 
 import (
 	"encoding/json"
@@ -11,12 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/leokite/add-message-to-notion-go/notion"
+
 	"github.com/slack-go/slack"
 )
 
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+func Function(w http.ResponseWriter, r*http.Request) {
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		verify(r)
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -69,12 +71,12 @@ func main() {
 			return
 		case "view_submission":
 			values := slackMessage.View.State.Values
-			item := Item{
+			item := notion.Item{
 				Title: values["message"]["message_id"].Value,
 				DoDate: values["date"]["date_id"].SelectedDate,
 				URL: values["link"]["link_id"].Value,
 			}
-			c := &Client{
+			c := &notion.Client{
 				BaseURL: "https://api.notion.com/v1",
 				HTTPClient: new(http.Client),
 			}
@@ -93,12 +95,12 @@ func main() {
 			return
 		}
 
-	})
+	// })
 
-	log.Println("[INFO] Server listening")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+	// log.Println("[INFO] Server listening")
+	// if err := http.ListenAndServe(":8080", nil); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
 
 func verify(r *http.Request) error {

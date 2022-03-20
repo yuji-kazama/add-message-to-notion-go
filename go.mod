@@ -1,6 +1,6 @@
-module add-message-to-notion-go
+module github.com/leokite/add-message-to-notion-go
 
-go 1.17
+go 1.16
 
 require github.com/slack-go/slack v0.10.2
 
