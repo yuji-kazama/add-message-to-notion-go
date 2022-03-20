@@ -49,7 +49,7 @@ func main() {
 		case "message_action":
 			j := getModalJson()
 			j = strings.Replace(j, "%INITIAL_DATE%", getTodayDateString(), 1)
-			j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(slackMessage), 1)
+			j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(&slackMessage), 1)
 			
 			modal, err := createModal(j)
 			if err != nil {
@@ -79,12 +79,11 @@ func main() {
 				HTTPClient: new(http.Client),
 			}
 
-			if err := c.PostItem(item); err != nil {
-				log.Printf("[ERROR] Notion API : %v", err)
+			if err := c.PostItem(&item); err != nil {
+				log.Printf("[ERROR] Failed to call Notion API : %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-
 			w.WriteHeader(http.StatusOK)
 			return 
 
@@ -123,7 +122,7 @@ func getTodayDateString() string {
 	return time.Now().String()[0:10]
 }
 
-func getMessageURLString(m slack.InteractionCallback) string {
+func getMessageURLString(m *slack.InteractionCallback) string {
 	return "https://" + m.Team.Domain + ".slack.com/archives/" + m.Channel.ID + "/p" + m.MessageTs
 }
 

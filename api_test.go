@@ -62,7 +62,7 @@ func TestClient_PostItem(t *testing.T) {
 		HTTPClient *http.Client
 	}
 	type args struct {
-		item Item
+		item *Item
 	}
 	tests := []struct {
 		name    string
@@ -73,12 +73,12 @@ func TestClient_PostItem(t *testing.T) {
 		{
 			name: "normal",
 			fields: fields{
-				BaseURL: "https://api.notion.com/v1", 
+				BaseURL: "https://api.notion.com/v1",
 				HTTPClient: new(http.Client),
 			},
 			args: args{
-				item: Item{
-					Title: "NOTION-API",
+				item: &Item{
+					Title: "TEST-NOTION-API",
 					DoDate: "2022-04-09",
 					URL: "http://example.com",
 				},

@@ -56,7 +56,7 @@ func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request
 	return req, nil
 }
 
-func (c *Client) PostItem(item Item) (error) {
+func (c *Client) PostItem(item *Item) (error) {
 	var itemJson = `{
 		"parent": {
 			"database_id": "f50193cd93f2488d8b1dd1c5d3a8cb7d"
@@ -96,7 +96,7 @@ func (c *Client) PostItem(item Item) (error) {
 		return err
 	}
 	defer res.Body.Close()
-	fmt.Printf("Response: %v", res)
+	// fmt.Printf("Response: %v", res)
 	return nil
 }
 
