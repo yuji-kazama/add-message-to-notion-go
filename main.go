@@ -14,6 +14,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		verify(r)
@@ -32,32 +33,33 @@ func main() {
 		}
 		payload = strings.Replace(payload, "payload=", "", 1)
 
-		var message slack.InteractionCallback
-		if err := json.Unmarshal([]byte(payload), &message); err != nil {
+		var slackMessage slack.InteractionCallback
+		if err := json.Unmarshal([]byte(payload), &slackMessage); err != nil {
 			log.Printf("[ERROR] Failed to unmarshal json: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if message.User.ID != os.Getenv("SLACK_USER_ID") {
-			log.Printf("[ERROR] User ID is invalid: %v", message.User.ID);
+		if slackMessage.User.ID != os.Getenv("SLACK_USER_ID") {
+			log.Printf("[ERROR] User ID is invalid: %v", slackMessage.User.ID);
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		switch message.Type {
+		switch slackMessage.Type {
 		case "message_action":
 			j := getModalJson()
 			j = strings.Replace(j, "%INITIAL_DATE%", getTodayDateString(), 1)
-			j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(message), 1)
+			j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(slackMessage), 1)
 			
 			modal, err := createModal(j)
 			if err != nil {
 				log.Printf("[ERROR] Unable to create modal: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
+
 			}
 			api := slack.New(os.Getenv("SLACK_ACCESS_TOKEN"))
-			if _, err := api.OpenView(message.TriggerID, *modal); err != nil {
+			if _, err := api.OpenView(slackMessage.TriggerID, *modal); err != nil {
 				log.Printf("[ERROR] Unable to open view: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -65,9 +67,29 @@ func main() {
 			}
 			w.WriteHeader(http.StatusOK)
 			return
+		case "view_submission":
+			values := slackMessage.View.State.Values
+			item := Item{
+				Title: values["message"]["message_id"].Value,
+				DoDate: values["date"]["date_id"].SelectedDate,
+				URL: values["link"]["link_id"].Value,
+			}
+			c := &Client{
+				BaseURL: "https://api.notion.com/v1",
+				HTTPClient: new(http.Client),
+			}
+
+			if err := c.PostItem(item); err != nil {
+				log.Printf("[ERROR] Notion API : %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			return 
 
 		default:
-			log.Printf("[ERROR] Unknown request type: %v", message.Type)
+			log.Printf("[ERROR] Unknown request type: %v", slackMessage.Type)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
