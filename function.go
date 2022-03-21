@@ -53,8 +53,8 @@ func Function(w http.ResponseWriter, r*http.Request) {
 	switch message.Type {
 	case "message_action":
 		j := getModalJson()
-		j = strings.Replace(j, "%INITIAL_DATE%", getToday(), 1)
-		j = strings.Replace(j, "%INITIAL_URL%", getMessageURL(&message), 1)
+		j = strings.Replace(j, "${DATE}", getToday(), 1)
+		j = strings.Replace(j, "${URL}", getMessageURL(&message), 1)
 		
 		modal, err := createModal(j)
 		if err != nil {
@@ -156,7 +156,7 @@ func getModalJson() string {
 					"element": {
 					  "action_id": "date_id",
 					  "type": "datepicker",
-					  "initial_date": "%INITIAL_DATE%",
+					  "initial_date": "${DATE}",
 					  "placeholder": {
 						"type": "plain_text",
 						"text": "Select a date"
@@ -173,7 +173,7 @@ func getModalJson() string {
 					"element": {
 					  "action_id": "link_id",
 					  "type": "plain_text_input",
-					  "initial_value": "%INITIAL_URL%"
+					  "initial_value": "${URL}"
 					},
 					"label": {
 					  "type": "plain_text",

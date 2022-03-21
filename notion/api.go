@@ -63,26 +63,26 @@ func (c *Client) PostItem(item *Item) (error) {
 				"title": [
 					{	
 						"text": {
-							"content": "$title"
+							"content": "${TITLE}"
 						}
 					}
 				]
 			},
 			"Do date": {
 				"date": {
-					"start": "$dodate",
+					"start": "${DODATE}",
 					"end": null
 				}
 			},
 			"Link": {
-				"url": "$url"
+				"url": "${URL}"
 			}
 		}
 	}`
 
-	itemJson = strings.Replace(string(itemJson), "$title", item.Title, -1)
-	itemJson = strings.Replace(string(itemJson), "$dodate", item.DoDate, -1)
-	itemJson = strings.Replace(string(itemJson), "$url", item.URL, -1)
+	itemJson = strings.Replace(string(itemJson), "${TITLE}", item.Title, -1)
+	itemJson = strings.Replace(string(itemJson), "${DODATE}", item.DoDate, -1)
+	itemJson = strings.Replace(string(itemJson), "${URL}", item.URL, -1)
 	
 	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer([]byte(itemJson))) 
 	if err != nil {
