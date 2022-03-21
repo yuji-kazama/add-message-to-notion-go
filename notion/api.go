@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	BaseURLV1 = "https://api.notion.com/v1"
-)
-
 type Client struct {
 	BaseURL	string
 	HTTPClient *http.Client
@@ -34,7 +30,7 @@ type Page struct {
 
 func NewClient() (*Client) {
 	c := new(Client)
-	c.BaseURL = BaseURLV1
+	c.BaseURL = "https://api.notion.com/v1"
 	c.HTTPClient = new(http.Client)
 	return c
 }
