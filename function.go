@@ -17,21 +17,26 @@ import (
 
 
 func Function(w http.ResponseWriter, r*http.Request) {
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("[ERROR] Failed to read request body: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	verify(r, body)
+	if err := verify(r, body); err != nil {
+		log.Printf("[ERROR] Failed to verify body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	payload, err := url.QueryUnescape(string(body))
+	// remove "payload=" from body
+	payload, err := url.QueryUnescape(string(body)[8:])
 	if err != nil {
 		log.Printf("[ERROR] Failed to unescape request body: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	payload = strings.Replace(payload, "payload=", "", 1)
 
 	var message slack.InteractionCallback
 	if err := json.Unmarshal([]byte(payload), &message); err != nil {
@@ -40,7 +45,7 @@ func Function(w http.ResponseWriter, r*http.Request) {
 		return
 	}
 	if message.User.ID != os.Getenv("SLACK_USER_ID") {
-		log.Printf("[ERROR] User ID is invalid: %v", message.User.ID);
+		log.Printf("[ERROR] Request user ID is invalid: %v", message.User.ID);
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -48,25 +53,24 @@ func Function(w http.ResponseWriter, r*http.Request) {
 	switch message.Type {
 	case "message_action":
 		j := getModalJson()
-		j = strings.Replace(j, "%INITIAL_DATE%", getTodayDateString(), 1)
-		j = strings.Replace(j, "%INITIAL_URL%", getMessageURLString(&message), 1)
+		j = strings.Replace(j, "%INITIAL_DATE%", getToday(), 1)
+		j = strings.Replace(j, "%INITIAL_URL%", getMessageURL(&message), 1)
 		
 		modal, err := createModal(j)
 		if err != nil {
 			log.Printf("[ERROR] Unable to create modal: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-
 		}
 		api := slack.New(os.Getenv("SLACK_ACCESS_TOKEN"))
 		if _, err := api.OpenView(message.TriggerID, *modal); err != nil {
 			log.Printf("[ERROR] Unable to open view: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-
 		}
 		w.WriteHeader(http.StatusOK)
 		return
+
 	case "view_submission":
 		values := message.View.State.Values
 		item := &notion.Item{
@@ -116,11 +120,11 @@ func createModal(j string) (*slack.ModalViewRequest, error) {
 	return &modal, nil
 }
 
-func getTodayDateString() string {
-	return time.Now().String()[0:10]
+func getToday() string {
+	return time.Now().String()[0:10] //e.g. 2022-04-09
 }
 
-func getMessageURLString(m *slack.InteractionCallback) string {
+func getMessageURL(m *slack.InteractionCallback) string {
 	return "https://" + m.Team.Domain + ".slack.com/archives/" + m.Channel.ID + "/p" + m.MessageTs
 }
 

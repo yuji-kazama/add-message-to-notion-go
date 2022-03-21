@@ -35,9 +35,9 @@ type Text struct {
 	Content string `json:"content"`
 }
 
-func NewClient(baseURL string) (*Client, error) {
+func NewClient() (*Client, error) {
 	c := new(Client)
-	c.BaseURL = baseURL
+	c.BaseURL = "https://api.notion.com/v1"
 	c.HTTPClient = new(http.Client)
 	return c, nil
 }

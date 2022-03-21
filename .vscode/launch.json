@@ -8,7 +8,7 @@
             "name": "Debug",
             "type": "go",
             "request": "launch",
-            "program": "${fileDirname}",
+            "program": "cmd/main.go",
             "envFile": "${workspaceFolder}/.env",
         }
     ]
