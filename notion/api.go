@@ -96,7 +96,6 @@ func (c *Client) PostItem(item *Item) (error) {
 		return err
 	}
 	defer res.Body.Close()
-	// fmt.Printf("Response: %v", res)
 	return nil
 }
 
@@ -124,7 +123,6 @@ func (c *Client) GetPage(pageId string) (*Page, error) {
 		fmt.Printf("Can not unmarshal JSON: %v", err)
 		return nil, err
 	}
-	// fmt.Printf("Page: %v", page)
 
 	return &page, nil
 }
