@@ -16,7 +16,7 @@ import (
 )
 
 
-func Function(w http.ResponseWriter, r*http.Request) {
+func Function(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -24,7 +24,7 @@ func Function(w http.ResponseWriter, r*http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if err := verify(r, body); err != nil {
+	if err := verifyHeader(r, body); err != nil {
 		log.Printf("[ERROR] Failed to verify body: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -37,6 +37,7 @@ func Function(w http.ResponseWriter, r*http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// log.Printf("[DEBUG] Unescaped payloead: %v", payload)
 
 	var message slack.InteractionCallback
 	if err := json.Unmarshal([]byte(payload), &message); err != nil {
@@ -44,10 +45,10 @@ func Function(w http.ResponseWriter, r*http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if message.User.ID != os.Getenv("SLACK_USER_ID") {
+	if err := verifyUser(message.User.ID); err != nil {
 		log.Printf("[ERROR] Request user ID is invalid: %v", message.User.ID);
 		w.WriteHeader(http.StatusUnauthorized)
-		return
+		return 
 	}
 
 	switch message.Type {
@@ -94,7 +95,7 @@ func Function(w http.ResponseWriter, r*http.Request) {
 	}
 }
 
-func verify(r *http.Request, body []byte) error {
+func verifyHeader(r *http.Request, body []byte) error {
 	sv, err := slack.NewSecretsVerifier(r.Header, os.Getenv("SLACK_SIGNING_SECRET"))
 	if err != nil {
 		return err
@@ -108,10 +109,17 @@ func verify(r *http.Request, body []byte) error {
 	return nil
 }
 
+func verifyUser(userId string) error {
+	if userId != os.Getenv("SLACK_USER_ID") {
+		return fmt.Errorf("invalid user: %v", userId)
+	}
+	return nil
+}
+
 func createModal(j string) (*slack.ModalViewRequest, error) {
 	var modal slack.ModalViewRequest
 	if err := json.Unmarshal([]byte(j), &modal); err!= nil {
-		return nil, fmt.Errorf("failed to unmarchal json: %w", err)
+		return nil, fmt.Errorf("failed to unmarchal json: %v", err)
 	}
 	return &modal, nil
 }
@@ -125,8 +133,7 @@ func getMessageURL(m *slack.InteractionCallback) string {
 }
 
 func getModalJson() string {
-	return `
-	{
+	return `{
 			"type": "modal",
 			"title": {
 				"type": "plain_text",
@@ -181,7 +188,7 @@ func getModalJson() string {
 					}
 				}
 			]
-	}`
+		}`
 }
 
 
