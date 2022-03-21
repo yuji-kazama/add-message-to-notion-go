@@ -11,14 +11,13 @@ import (
 	"strings"
 )
 
+const (
+	BaseURLV1 = "https://api.notion.com/v1"
+)
+
 type Client struct {
 	BaseURL	string
 	HTTPClient *http.Client
-}
-
-type Page struct {
-	Object string `json:"object"`
-	Id string `json:"id"`
 }
 
 type Item struct {
@@ -27,19 +26,17 @@ type Item struct {
 	URL string
 }
 
-type Parent struct {
-	DatabaseID string `json:"database_id"`
+type Page struct {
+	Object string `json:"object"`
+	Id string `json:"id"`
 }
 
-type Text struct {
-	Content string `json:"content"`
-}
 
-func NewClient() (*Client, error) {
+func NewClient() (*Client) {
 	c := new(Client)
-	c.BaseURL = "https://api.notion.com/v1"
+	c.BaseURL = BaseURLV1
 	c.HTTPClient = new(http.Client)
-	return c, nil
+	return c
 }
 
 func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request, error) {
@@ -66,26 +63,26 @@ func (c *Client) PostItem(item *Item) (error) {
 				"title": [
 					{	
 						"text": {
-							"content": "%ITEM_TITLE%"
+							"content": "$title"
 						}
 					}
 				]
 			},
 			"Do date": {
 				"date": {
-					"start": "%ITEM_DODATE%",
+					"start": "$dodate",
 					"end": null
 				}
 			},
 			"Link": {
-				"url": "%ITEM_URL%"
+				"url": "$url"
 			}
 		}
 	}`
 
-	itemJson = strings.Replace(string(itemJson), "%ITEM_TITLE%", item.Title, -1)
-	itemJson = strings.Replace(string(itemJson), "%ITEM_DODATE%", item.DoDate, -1)
-	itemJson = strings.Replace(string(itemJson), "%ITEM_URL%", item.URL, -1)
+	itemJson = strings.Replace(string(itemJson), "$title", item.Title, -1)
+	itemJson = strings.Replace(string(itemJson), "$dodate", item.DoDate, -1)
+	itemJson = strings.Replace(string(itemJson), "$url", item.URL, -1)
 	
 	req, err := c.newRequest(http.MethodPost, "/pages", bytes.NewBuffer([]byte(itemJson))) 
 	if err != nil {

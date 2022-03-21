@@ -78,11 +78,7 @@ func Function(w http.ResponseWriter, r*http.Request) {
 			DoDate: values["date"]["date_id"].SelectedDate,
 			URL: values["link"]["link_id"].Value,
 		}
-		c := &notion.Client{
-			BaseURL: "https://api.notion.com/v1",
-			HTTPClient: new(http.Client),
-		}
-
+		c := notion.NewClient()
 		if err := c.PostItem(item); err != nil {
 			log.Printf("[ERROR] Failed to call Notion API : %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
