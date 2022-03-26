@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leokite/add-message-to-notion-go/notion"
+	"github.com/yuji-kazama/add-message-to-notion-go/notion"
 	"github.com/slack-go/slack"
 )
 

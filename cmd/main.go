@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/leokite/add-message-to-notion-go"
+	"github.com/yuji-kazama/add-message-to-notion-go"
 )
 
 func main() {
