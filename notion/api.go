@@ -12,8 +12,8 @@ import (
 )
 
 type Client struct {
-	BaseURL	string
-	HTTPClient *http.Client
+	baseURL	string
+	httpClient *http.Client
 }
 
 type Item struct {
@@ -30,13 +30,13 @@ type Page struct {
 
 func NewClient() (*Client) {
 	c := new(Client)
-	c.BaseURL = "https://api.notion.com/v1"
-	c.HTTPClient = new(http.Client)
+	c.baseURL = "https://api.notion.com/v1"
+	c.httpClient = new(http.Client)
 	return c
 }
 
 func (c *Client) newRequest(method, spath string, body io.Reader) (*http.Request, error) {
-	url := c.BaseURL + spath
+	url := c.baseURL + spath
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (c *Client) PostItem(item *Item) (error) {
 	if err != nil {
 		return err
 	}
-	res, err := c.HTTPClient.Do(req)
+	res, err := c.httpClient.Do(req)
 	if (err != nil) {
 		return err
 	}
@@ -98,7 +98,7 @@ func (c *Client) GetPage(pageId string) (*Page, error) {
 		return nil, err
 	}
 
-	res, err := c.HTTPClient.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
