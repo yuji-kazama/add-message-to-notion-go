@@ -2,7 +2,7 @@
 This is a Slack bot for adding a message in Slack to a database in [Notion](https://www.notion.so).
 
 ## Requirement
-* Go 1.16 or higher
+* Go 1.16
 * direnv
 
 ## Config
