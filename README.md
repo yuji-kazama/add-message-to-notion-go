@@ -4,6 +4,7 @@ This is a Slack bot for adding a message in Slack to a database in [Notion](http
 ## Requirement
 * Go 1.16
 * direnv
+* ngrok
 
 ## Config
 Create ".env" file, and set the following as environment valuables in the file.
@@ -14,7 +15,6 @@ Create ".env" file, and set the following as environment valuables in the file.
 * NOTION_DATABASE_ID
 
 ## Run in local
-* Install ngrok
 * Run ngrok
 ```bash
 $ ngrok http 8080
